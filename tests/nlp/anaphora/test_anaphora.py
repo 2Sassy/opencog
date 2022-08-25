@@ -42,15 +42,11 @@ class AnaphoraUnitTester(TestCase):
         del self.hobbsAgent
 
     def getWord(self,name,type=types.WordInstanceNode):
-        word = self.atomspace.add_node(type, name)
-        return word
+        return self.atomspace.add_node(type, name)
 
     def compare(self,list_1,list_2):
         if len(list_1)==len(list_2):
-            for i in range(len(list_1)):
-                if list_1[i]!=list_2[i].name:
-                    return False
-            return True
+            return all(list_1[i] == list_2[i].name for i in range(len(list_1)))
         else:
             return False
 

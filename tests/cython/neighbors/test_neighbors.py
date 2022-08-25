@@ -34,9 +34,7 @@ class NeighborTest(TestCase):
         dog_predicates = self.space.get_predicates(dog)
         self.assertEquals(len(dog_predicates), 3)
 
-        count = 0
-        for dogIs in self.space.get_predicates(dog):
-            count += 1
+        count = sum(1 for _ in self.space.get_predicates(dog))
         self.assertEquals(count, 3)
 
     def test_get_predicates_for(self):
@@ -63,12 +61,8 @@ class NeighborTest(TestCase):
         dog_predicates = self.space.get_predicates_for(dog, loves)
         self.assertEquals(len(dog_predicates), 1)
 
-        count = 0
-        for dogIsA in self.space.get_predicates_for(dog, isA):
-            count += 1
+        count = sum(1 for _ in self.space.get_predicates_for(dog, isA))
         self.assertEquals(count, 3)
 
-        count = 0
-        for dogLoves in self.space.get_predicates_for(dog, loves):
-            count += 1
+        count = sum(1 for _ in self.space.get_predicates_for(dog, loves))
         self.assertEquals(count, 1)

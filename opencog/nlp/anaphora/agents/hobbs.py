@@ -77,10 +77,10 @@ class BindLinkExecution():
         First binds the "anchorNode" with the "target" if "anchorNode" exists, then executes scheme command "command"
         '''
 
-        if self.anchorNode != None and self.target != None:
-            self.tmpLink=self.atomspace.add_link(types.ListLink, [self.anchorNode, self.target], TruthValue(1.0, 100))
-        else:
+        if self.anchorNode is None or self.target is None:
             self.tmpLink=None
+        else:
+            self.tmpLink=self.atomspace.add_link(types.ListLink, [self.anchorNode, self.target], TruthValue(1.0, 100))
         self.response = scheme_eval_h(self.atomspace, self.command)
         d=3;
 
@@ -90,7 +90,7 @@ class BindLinkExecution():
         Returns list of atoms resulted in previous execution of a scheme command
         '''
 
-        if self.response==None:
+        if self.response is None:
             return
         rv=[]
         listOfLinks=self.response.out
@@ -120,8 +120,8 @@ class HobbsAgent(MindAgent):
     '''
 
     def __init__(self):
-        self.checked=dict()
-        self.wordNumber=dict()
+        self.checked = {}
+        self.wordNumber = {}
         self.atomspace = None
 
         self.currentPronoun = None
@@ -223,8 +223,7 @@ class HobbsAgent(MindAgent):
 
         if len(conjunction)>0:
 
-            conjunction_list=[]
-            conjunction_list.append(node)
+            conjunction_list = [node]
             conjunction_list.extend(conjunction)
 
             # We don't want to output this to unit tests
@@ -258,7 +257,7 @@ class HobbsAgent(MindAgent):
             end=filter+1
 
         for index in range(start,end):
-            command='(cog-execute! filter-#'+str(index)+')'
+            command = f'(cog-execute! filter-#{str(index)})'
             rv=self.bindLinkExe(self.currentProposal,node,command)
             if len(rv)>0:
                 '''
@@ -272,8 +271,8 @@ class HobbsAgent(MindAgent):
 
             # We don't want to output this to unit tests
             if self.DEBUG:
-                    print("accepted "+node.name)
-            log.fine("accepted "+node.name)
+                print(f"accepted {node.name}")
+            log.fine(f"accepted {node.name}")
             self.generateReferenceLink(self.currentPronoun,node,TruthValue(STRENGTH_FOR_ACCEPTED_ANTECEDENTS, self.confidence))
             self.confidence=self.confidence*CONFIDENCE_DECREASING_RATE
         else:
@@ -307,7 +306,7 @@ class HobbsAgent(MindAgent):
         '''
         rv=[]
 
-        if node==None:
+        if node is None:
             #print("found you bfs")
             return
         q=queue.Queue()
@@ -342,7 +341,7 @@ class HobbsAgent(MindAgent):
         for word in words:
             matched=False
             for index in range(1,self.numOfPrePatterns+1):
-                command='(cog-execute! pre-process-#'+str(index)+')'
+                command = f'(cog-execute! pre-process-#{str(index)})'
                 rv=self.bindLinkExe(self.currentTarget,word,command)
                 if len(rv)>0:
                     matched=True
@@ -373,12 +372,12 @@ class HobbsAgent(MindAgent):
         rv=self.bindLinkExe(self.currentTarget,target,'(cog-execute! getParseNode)')
         return rv[0]
 
-    def  previousRootExist(self,root):
+    def previousRootExist(self,root):
 
         '''
         "previous" means that a root with smaller word sequence number than the word sequence number of current "roots".
         '''
-        return not self.roots[0].name==root.name
+        return self.roots[0].name != root.name
 
     def getPrevious(self,root):
 
@@ -486,12 +485,12 @@ class HobbsAgent(MindAgent):
         rv=self.bindLinkExe(self.currentTarget,node,'(cog-execute! isIt)')
         if len(rv)>0:
             for index in range(1,self.numOfPleonasticItPatterns+1):
-                command='(cog-execute! pleonastic-it-#'+str(index)+')'
+                command = f'(cog-execute! pleonastic-it-#{str(index)})'
                 rv=self.bindLinkExe(self.currentTarget,node,command)
                 if len(rv)>0:
                     matched=True
                     break
-                #print("rejected "+node.name+" by filter-#"+str(index))
+                        #print("rejected "+node.name+" by filter-#"+str(index))
 
         return matched
 
@@ -527,13 +526,11 @@ class HobbsAgent(MindAgent):
                 self.generateReferenceLink(pronoun,self.PleonasticItNode,TruthValue(STRENGTH_FOR_ACCEPTED_ANTECEDENTS, self.confidence))
                 self.confidence=self.confidence*CONFIDENCE_DECREASING_RATE
                 if self.DEBUG:
-                    print("accepted "+self.PleonasticItNode.name)
-                    log.fine("accepted "+self.PleonasticItNode.name)
+                    print(f"accepted {self.PleonasticItNode.name}")
+                    log.fine(f"accepted {self.PleonasticItNode.name}")
 
             sent_counter=1;
-            while True:
-                if root==None:
-                    break
+            while root is not None:
                 self.bfs(root)
                 if self.previousRootExist(root) and sent_counter<=NUMBER_OF_SEARCHING_SENTENCES:
                     root=self.getPrevious(root)

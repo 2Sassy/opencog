@@ -46,11 +46,15 @@ def help(bot, update):
 
 def echo(bot, update):
     """Echo the user message."""
-    print ("Ok, we got message {}".format(update.message.text))
-    reply = scheme_eval(atomspace, '(process-query "{}" "{}")'.format(update.message.from_user.first_name, update.message.text))
-    print ("And now we have a reply {}".format(reply))
+    print(f"Ok, we got message {update.message.text}")
+    reply = scheme_eval(
+        atomspace,
+        f'(process-query "{update.message.from_user.first_name}" "{update.message.text}")',
+    )
+
+    print(f"And now we have a reply {reply}")
     reply_decoded = reply.decode("utf-8")
-    print ("Decoding the reply: {}".format(reply_decoded))
+    print(f"Decoding the reply: {reply_decoded}")
     bot.send_message(chat_id=update.message.chat_id, text=reply_decoded)
 
 
