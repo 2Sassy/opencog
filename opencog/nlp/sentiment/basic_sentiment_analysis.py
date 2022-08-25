@@ -28,8 +28,7 @@ class Splitter(object):
             e.g.: [['this', 'is', 'a', 'sentence'], ['this', 'is', 'another', 'one']]
         """
         sentences = self.nltk_splitter.tokenize(text)
-        tokenized_sentences = [self.nltk_tokenizer.tokenize(sent) for sent in sentences]
-        return tokenized_sentences
+        return [self.nltk_tokenizer.tokenize(sent) for sent in sentences]
 
 
 class POSTagger(object):
@@ -97,16 +96,13 @@ class DictionaryTagger(object):
             while (j > i):
                 expression_form = ' '.join([word[0] for word in sentence[i:j]]).lower()
                 expression_lemma = ' '.join([word[1] for word in sentence[i:j]]).lower()
-                if tag_with_lemmas:
-                    literal = expression_lemma
-                else:
-                    literal = expression_form
+                literal = expression_lemma if tag_with_lemmas else expression_form
                 if literal in self.dictionary:
                     #self.logger.debug("found: %s" % literal)
                     is_single_token = j - i == 1
                     original_position = i
                     i = j
-                    taggings = [tag for tag in self.dictionary[literal]]
+                    taggings = list(self.dictionary[literal])
                     tagged_expression = (expression_form, expression_lemma, taggings)
                     if is_single_token: #if the tagged literal is a single token, conserve its previous taggings:
                         original_token_tagging = sentence[original_position][2]
@@ -122,20 +118,17 @@ class DictionaryTagger(object):
 
 def value_of(sentiment):
     if sentiment == 'positive': return 1
-    if sentiment == 'negative': return -1
-    return 0
+    return -1 if sentiment == 'negative' else 0
 
 def sentence_score(sentence_tokens, previous_token, acum_score, neg_num):
     if not sentence_tokens:
-        if(neg_num % 2 == 0):
-            return acum_score
-        else:
+        if neg_num % 2 != 0:
             acum_score *= -1.0
-            return acum_score
+        return acum_score
     else:
         current_token = sentence_tokens[0]
         tags = current_token[2]
-        token_score = sum([value_of(tag) for tag in tags])
+        token_score = sum(value_of(tag) for tag in tags)
         if previous_token is not None:
             previous_tags = previous_token[2]
             if 'inc' in previous_tags:
@@ -147,7 +140,7 @@ def sentence_score(sentence_tokens, previous_token, acum_score, neg_num):
         return sentence_score(sentence_tokens[1:], current_token, acum_score + token_score, neg_num)
 
 def sentiment_score(review):
-    return sum([sentence_score(sentence, None, 0.0, 0) for sentence in review])
+    return sum(sentence_score(sentence, None, 0.0, 0) for sentence in review)
 
 configpath = '/usr/local/etc/'
 path = os.path.join(configpath, 'opencog/dicts');
@@ -160,8 +153,7 @@ def sentiment_parse(plain_text):
     splitted_sentences = splitter.split(plain_text)
     pos_tagged_sentences = postagger.pos_tag(splitted_sentences)
     dict_tagged_sentences = dicttagger.tag(pos_tagged_sentences)
-    score = sentiment_score(dict_tagged_sentences)
-    return score
+    return sentiment_score(dict_tagged_sentences)
 
 
 if __name__ == "__main__":

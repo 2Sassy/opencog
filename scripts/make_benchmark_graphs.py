@@ -27,11 +27,7 @@ def moving_average(x, n, type='simple'):
 
     """
     x = np.asarray(x)
-    if type=='simple':
-        weights = np.ones(n)
-    else:
-        weights = np.exp(np.linspace(-1., 0., n))
-
+    weights = np.ones(n) if type=='simple' else np.exp(np.linspace(-1., 0., n))
     weights /= weights.sum()
 
     a =  np.convolve(x, weights, mode='full')[:len(x)]
